@@ -1,0 +1,169 @@
+---
+title: 'JavaScript Code Protect'
+publishedAt: '2019-01-01'
+image: '/images/blog/javascript-powered-multichannel-960w.gif'
+summary: 'JavaScript ist clientseitig sichtbar und daher leicht kopierbar. In diesem Artikel zeige ich effektive Methoden zur Verschleierung, Domain-Bindung und weiteren Schutzmaßnahmen für JavaScript-Code.'
+tag: 'JavaScript'
+---
+
+# JavaScript Code Protect
+
+JavaScript ist in nahezu jeder modernen Website unverzichtbar – ob für Animationen, Formvalidierungen oder interaktive Komponenten. Doch individueller Code bedeutet oft viel Entwicklungsaufwand. Da JavaScript im Browser läuft, ist der gesamte Code für Dritte einsehbar und potenziell kopierbar.
+
+Die gute Nachricht: Es gibt verschiedene Techniken, um JavaScript-Code zu erschweren, zu verschleiern oder sogar an bestimmte Domains zu binden. Hier sind die wichtigsten Methoden zur Absicherung clientseitiger Skripte.
+
+## 1. Namensersetzung
+
+Die einfachste Form der Verschleierung: sprechende Variablennamen werden durch kryptische Zeichenfolgen ersetzt.
+
+**Lesbarer Code:**
+
+<CodeBlock
+	codeInstances={[
+		{
+			code: `function CelsiusInFahrenheit() {
+	var GradCelsius = 10;
+	var GradFahrenheit = (GradCelsius * 9) / 5 + 32;
+	alert(GradFahrenheit);
+}`,
+			label: 'Next.js',
+			language: 'js',
+		},
+	]}
+/>
+
+**Verschleiert:**
+
+<CodeBlock
+	codeInstances={[
+		{
+			code: `function a() {
+	var _b = 10;
+	var c = (_b * 9) / 5 + 32;
+	alert(c);
+}`,
+			label: 'Next.js',
+			language: 'js',
+		},
+	]}
+/>
+
+## 2. Minifizierung
+
+Beim Minifizieren werden überflüssige Leerzeichen, Zeilenumbrüche und Kommentare entfernt. Das reduziert Dateigröße und Lesbarkeit.
+
+<CodeBlock codeInstances={[{ code: `function a(){var _b=10;var c=(_b*9)/5+32;alert(c);}`, label: 'Next.js', language: 'js' }]} />
+
+## 3. Obfuskation
+
+Bei der Obfuskation wird der Code durch spezielle Algorithmen so transformiert, dass er für Menschen kaum lesbar ist – für den Browser aber weiterhin funktional.
+
+<CodeBlock codeInstances={[{ code: `eval((function(p,a,c,k,e,d){while(c--){if(k[c]){p=p.replace(new RegExp('\\b'+c+'\\b','g'),k[c]);}}return p;})('4 8(){0 2=3;0 1=(2*9/5)+7;6(1)}',10,10,'var|c|b|10|function||alert|32|a|'.split('|')));`, label: 'Next.js', language: 'js' }]} />
+
+## 4. Dummy-Code einfügen
+
+Füge bewusst unnötige oder irreführende Funktionen ein, um den Code schwerer nachvollziehbar zu machen.
+
+**Vorher:**
+
+<CodeBlock
+	codeInstances={[
+		{
+			code: `function a() {
+	var _b = 10;
+	var x = 0;
+	var c = (_b * 9) / 5 + 32;
+	b();
+	alert(c);
+}
+function b() {
+	z = 1;
+}`,
+			label: 'Next.js',
+			language: 'js',
+		},
+	]}
+/>
+
+**Nach Obfuskation:**
+
+<CodeBlock
+	codeInstances={[
+		{ code: `eval((function(p,a,c,k,e,d){while(c--){if(k[c]){p=p.replace(new RegExp('\\b'+c.toString(a)+'\\b','g'),k[c]);}}return p;})('4 a(){2 3=8;2 6=0;2 c=(3*9/5)+7;b();d(c)}4 b(){e=1}',15,15,'||var|_0|function||x|32|10|||||alert|z'.split('|')));`, label: 'Next.js', language: 'js' },
+	]}
+/>
+
+## 5. Domainbindung
+
+Begrenze die Ausführung des Codes auf bestimmte Domains. Dadurch wird ein direktes Kopieren auf fremden Seiten unterbunden.
+
+**Code mit Domain-Check:**
+
+<CodeBlock
+	codeInstances={[
+		{
+			code: `function a() {
+	if (window.location.href.indexOf('aland-mariwan') > -1) {
+		var _b = 10;
+		var x = 0;
+		var c = (_b * 9) / 5 + 32;
+		b();
+		alert(c);
+	}
+}
+function b() {
+	z = 1;
+}`,
+			label: 'Next.js',
+			language: 'js',
+		},
+	]}
+/>
+
+**Obfuskiert:**
+
+<CodeBlock
+	codeInstances={[
+		{
+			code: `eval((function(p,a,c,k,e,d){while(c--){if(k[c]){p=p.replace(new RegExp('\\b'+c.toString(a)+'\\b','g'),k[c]);}}return p;})('4 a(){g(f.j.7.k("d")>-1){2 3=8;2 e=0;2 c=(3*9/5)+i;b();h(c)}}4 b(){6=1}',21,21,'||var|_0|function||z|href|10|||||aland-mariwan|x|window|if|alert|32|location|indexOf'.split('|')));`,
+			label: 'Next.js',
+			language: 'js',
+		},
+	]}
+/>
+
+## 6. AJAX + Serverbindung
+
+Eine zusätzliche Sicherheitsstufe: Der Code wird nur ausgeführt, wenn eine serverseitige Prüfung erfolgreich ist – z. B. durch einen Hash-Vergleich via AJAX.
+
+<CodeBlock
+	codeInstances={[
+		{
+			code: `$.ajax({
+	async: false,
+	global: false,
+	url: 'index.php?getHashKey',
+	success: function (data) {
+		if ($.md5(data.key) == 'ae43fa9c3a31fb8118f9a4') {
+			// continue
+		}
+	},
+});`,
+			label: 'Next.js',
+			language: 'js',
+		},
+	]}
+/>
+
+## 7. Tools zur Code-Verschleierung
+
+Empfohlene Dienste zur Obfuskation:
+
+-    [dantools.com – JavaScript Obfuscator](https://dantools.com/javascript-obfuscator/)
+-    [javascriptobfuscator.com](https://javascriptobfuscator.com)
+-    [jscrambler.com](https://jscrambler.com) – kommerziell, aber mit kostenlosem Testzugang
+
+## Fazit
+
+Ein vollständiger Schutz vor Code-Diebstahl ist bei clientseitigem JavaScript kaum möglich – aber mit den genannten Techniken lässt sich der Aufwand für potenzielle Kopierer deutlich erhöhen. In Kombination mit rechtlichen Hinweisen und Lizenzmodellen entsteht ein wirksamer Schutzrahmen für deinen
+Code.

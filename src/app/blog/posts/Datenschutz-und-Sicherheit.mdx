@@ -1,0 +1,142 @@
+---
+title: 'Datenschutz und Sicherheit in modernen Webanwendungen'
+publishedAt: '2019-03-06'
+image: '/images/blog/6p.png'
+summary: 'Ein tiefgehender Blick auf Architektur, rechtliche Rahmenbedingungen und Sicherheitsmechanismen wie OAuth2, die beim Aufbau eines datenschutzkonformen sozialen Netzwerks zum Einsatz kommen.'
+tag: 'IT-Security, Microservices, Compliance'
+---
+
+## Einführung
+
+Datenschutz und IT-Sicherheit sind zentrale Säulen moderner Webanwendungen – insbesondere bei sozialen Netzwerken, die sensible Nutzerdaten verarbeiten. Dieser Artikel untersucht, wie ein Startup diese Herausforderungen in der frühen Entwicklungsphase eines projekt-, aktivitäts- und
+zeitmanagementorientierten sozialen Netzwerks meistert. Im Fokus stehen die Implementierung von OAuth2, serviceorientierte Architekturen (SOA) und die Einhaltung deutscher sowie europäischer Datenschutzvorgaben.
+
+Unser Produkt positioniert sich als Alternative zu traditionellen Ticketsystemen wie JIRA, richtet sich jedoch an engagierte Einzelpersonen statt an Unternehmen. Die Kernfrage lautet: Wie lassen sich Datensicherheit und Datenschutz bei potenziell hoher Nutzerzahl technisch robust und rechtlich
+konform umsetzen?
+
+## Rechtlicher Rahmen
+
+### Deutsche und europäische Vorgaben
+
+Die rechtlichen Anforderungen an Betreiber sozialer Netzwerke sind umfassend. In Deutschland regeln insbesondere das **Telemediengesetz (TMG)**, das **Urheberrechtsgesetz (UrhG)** und das **Netzwerkdurchsetzungsgesetz (NetzDG)** die Pflichten. Seit 2018 ergänzt die **Datenschutz-Grundverordnung
+(DSGVO)** diese Vorschriften auf europäischer Ebene. Wichtige Aspekte:
+
+-    **TMG § 5 – Allgemeine Informationspflichten:** Ein Impressum muss gemäß dem Prinzip der „unmittelbaren Erreichbarkeit“ mit maximal zwei Klicks zugänglich sein.
+-    **TMG § 13 – Datenschutzinformationen:** Nutzer müssen vorab klar und verständlich über Art, Umfang und Zweck der Datenerhebung sowie über Verarbeitungen außerhalb des Europäischen Wirtschaftsraums (EWR) und automatisierte Verfahren informiert werden. Diese Informationen müssen jederzeit
+     abrufbar bleiben.
+-    **UrhG § 22 – Recht am eigenen Bild:** Die Verwendung von Nutzerfotos erfordert deren ausdrückliche Einwilligung.
+-    **NetzDG:** Betreiber sozialer Netzwerke müssen Mechanismen zur Beschwerdebearbeitung (§ 3), Berichtspflichten (§ 2) und Bußgeldvermeidung (§ 4) implementieren. Zudem ist ein Zustellungsbevollmächtigter im Inland erforderlich (§ 5).
+
+Darüber hinaus fordert die DSGVO Grundsätze wie **Transparenz**, **Datenminimierung**, **Integrität**, **Vertraulichkeit** und **Intervenierbarkeit**. Diese Prinzipien bilden die Grundlage für die technische Umsetzung.
+
+## Architekturkonzept
+
+### Von monolithisch zu modular
+
+#### Alte Architektur
+
+Die ursprüngliche Architektur war ein monolithisches System mit integriertem Login und einfachem Authentifizierungs-Redirect. Diese Struktur war zwar simpel, aber unflexibel und schwer skalierbar.
+
+![Alte Architektur](/images/foliage/archit_konzept_old.png)
+
+#### Neue Architektur
+
+Die aktuelle Architektur setzt auf Microservices. Sicherheitsmodule wurden ausgelagert und basieren auf **Java mit Spring Security** sowie der Passwortverschlüsselung mit **bcrypt**. Die Kommunikation erfolgt über eine **REST-API**, was folgende Vorteile bietet:
+
+-    **Wiederverwendbarkeit:** Sicherheitsmodule können z. B. für OAuth2 genutzt werden.
+-    **Trennung von Zuständigkeiten:** Klare Abgrenzung zwischen Authentifizierung, Autorisierung und Anwendungskern.
+-    **Flexibilität:** Anpassungen an Sicherheitsstrategien sind einfacher umsetzbar.
+
+Benutzerrechte sind in acht Hierarchieebenen strukturiert. Für Ebenen >5 (z. B. Administratoren) ist eine **Zwei-Faktor-Authentifizierung (2FA)** verpflichtend.
+
+![Neue Architektur](/images/foliage/archit_konzept_new.png)
+
+## OAuth2: Moderne Zugriffsverwaltung
+
+OAuth2 ist ein etabliertes Protokoll zur sicheren und kontrollierten Zugriffssteuerung. Es trennt die Rollen wie folgt:
+
+-    **Resource Owner:** Der Nutzer, der Zugriff gewährt.
+-    **Resource Server:** Speichert geschützte Daten.
+-    **Authorization Server:** Verifiziert Identitäten und stellt Zugriffstoken aus.
+-    **Client:** Eine externe Anwendung, die Zugriff anfordert.
+
+### Unterstützte Grant Types
+
+-    **Authorization Code:** Für serverbasierte Anwendungen mit hoher Sicherheit.
+-    **Implicit Grant:** Für clientseitige Apps (z. B. Single-Page-Applications).
+-    **Resource Owner Password:** Direkte Nutzung von Nutzer-Credentials (weniger sicher).
+-    **Client Credentials:** Für Maschine-zu-Maschine-Kommunikation.
+
+![OAuth2 Flow](/images/foliage/OAuth2.jpg)
+
+## Technische Modellierung
+
+### Authorization-Modul
+
+Das Autorisierungsmodul ist ein eigenständiger Microservice, der Token generiert und verwaltet.
+
+![Modellierung Tokens](/images/foliage/tokens.png)
+
+### Registrierung und Datenfreigabe
+
+Externe Entwickler registrieren ihre Anwendungen über ein Entwicklerportal. Dabei erhalten sie eine **app_id** und definieren erlaubte Datenzugriffe. Diese Informationen werden in einer separaten Datenbank isoliert gespeichert.
+
+**Beispieltabellen:** ![App Tabelle](/images/foliage/tab1.png) ![Datenfreigabe Tabelle](/images/foliage/tab2.png) ![Datenstruktur Tabelle](/images/foliage/tab3.png)
+
+## Technische Umsetzung
+
+### Login-Flow
+
+1. Der Nutzer ruft `api.foliage.com/auth/login/?app_id=...&redirect_uri=...` auf.
+2. Die API zeigt eine Login-Seite, auf der der Nutzer den Zugriff freigibt.
+3. Die API antwortet mit:
+
+```json
+{
+	"status": true,
+	"access_token": "<token>",
+	"expires_at": 86400,
+	"refresh_token": "<token>",
+	"user": {
+		"name": "<name>",
+		"photo": "<url>"
+	}
+}
+```
+
+4. Der Nutzer wird an `redirect_uri?access_token=...&refresh_token=...&name=...` zurückgeleitet.
+
+### Token-Verlängerung
+
+```url
+api.foliage.com/prolongate?refresh_token=...&access_token=...
+```
+
+Antwort:
+
+```json
+{
+	"status": true,
+	"access_token": "<new_token>",
+	"refresh_token": "<new_refresh_token>"
+}
+```
+
+### Logout
+
+Beim Logout werden Tokens ungültig gemacht:
+
+```sql
+UPDATE users SET refresh_token = NULL, access_token = NULL WHERE user_id = 3243;
+```
+
+## Offene Fragestellungen
+
+1. **Token-Gültigkeit:** Wie häufig sollte die Client-App die Gültigkeit prüfen, und welche Strategie (z. B. periodische Abfragen oder Event-Trigger) ist optimal?
+2. **Logout-Verhalten:** Bleibt der `refresh_token` nach einem Logout gültig, und wie wird dies verhindert?
+3. **Wiedererkennung:** Wie kann ein wiederkehrender Nutzer sicher identifiziert werden, ohne Datenschutzrisiken einzugehen?
+
+## Fazit
+
+Die Entwicklung eines datenschutzkonformen sozialen Netzwerks erfordert eine Balance zwischen technischer Flexibilität, rechtlicher Konformität und nutzerzentrierter Sicherheit. Durch den Einsatz von Microservices, OAuth2 und klar definierten Prozessen schaffen wir eine skalierbare und sichere
+Grundlage. Offene Fragen werden in der weiteren Entwicklung priorisiert, um die Architektur kontinuierlich zu optimieren.

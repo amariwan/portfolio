@@ -1,0 +1,48 @@
+{
+   "$schema": "https://turborepo.org/schema.json",
+   "globalEnv": [ "NEXT_CI_RUNNER" ],
+   "daemon": false,
+   "tasks": {
+      "build": {
+         "outputs": [ ".next/**", "dist/**" ]
+      },
+      "dev": {
+         "cache": false,
+         "persistent": true
+      },
+      "lint": {
+         "inputs": [ "src/**/*.{js,jsx,ts,tsx}", "turbo.json", ".eslintrc.json" ],
+         "outputs": [ ".next/**" ]
+      },
+      "export": {
+         "inputs": [ ".next/**" ],
+         "outputs": [ "out/**" ]
+      },
+      "start": {
+         "cache": false,
+         "persistent": true
+      },
+      "test": {
+         "inputs": [ "src/**/*.{js,jsx,ts,tsx}", "test/**/*.{js,jsx,ts,tsx}", "jest.config.js", "jest.setup.js" ],
+         "outputs": [ ".next/**" ]
+      },
+      "test:ci": {
+         "inputs": [ "src/**/*.{js,jsx,ts,tsx}", "test/**/*.{js,jsx,ts,tsx}", "jest.config.js", "jest.setup.js" ],
+         "outputs": [ ".next/**" ]
+      },
+      "typescript": {
+         "dependsOn": [ "^typescript" ],
+         "outputs": [ "dist/**" ]
+      },
+      "get-test-timings": {
+         "inputs": [ "run-tests.js" ],
+         "outputs": [ "test-timings.json" ]
+      },
+
+      "build:minify-css": {
+         "inputs": [ "src/**/*.css" ],
+         "outputs": [ "dist/css/**/*.css" ]
+      }
+   },
+   "ui": "tui"
+}
